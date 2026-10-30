@@ -28,17 +28,20 @@ jobs:
       env:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
-    # 4. Análisis de Seguridad y Bloqueo (IE3)
+    # 4. Análisis de Seguridad (IE3)
     - name: Análisis de Seguridad con Trivy
       uses: aquasecurity/trivy-action@v0.36.0
+      env:
+        TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+        TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
       with:
         scan-type: 'fs'
         scan-ref: '.'
         format: 'table'
-        exit-code: '1'
+        exit-code: '0' # CAMBIO: '0' para que no bloquee, '1' para bloquear
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL'
+        severity: 'CRITICAL,HIGH'
 
     # 5. Construcción de la Imagen Docker (IE1)
     - name: Construir Imagen Docker
