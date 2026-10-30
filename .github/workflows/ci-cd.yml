@@ -10,11 +10,11 @@ jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
     steps:
-    # 1. Checkout del código (Trazabilidad)
+    # 1.checkout del codigo (trazabilidad)
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar Java 21
+    # 2.configurar Java 21
     - name: Configurar JDK 21
       uses: actions/setup-java@v4
       with:
@@ -22,15 +22,15 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    # 3. Ejecutar Pruebas Automatizadas (IE2)
+    # 3.ejecutar pruebas automatizadas (IE2)
     - name: Ejecutar Pruebas Unitarias
       run: mvn clean test
       env:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
-    # 4. Análisis de Seguridad y Bloqueo (IE3)
+    # 4.analisis de seguridad y bloqueo (IE3)
     - name: Análisis de Seguridad con Trivy
-      uses: aquasecurity/trivy-action@0.28.0 # <--- CAMBIO AQUÍ (versión estable)
+      uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
         scan-ref: '.'
@@ -38,17 +38,15 @@ jobs:
         exit-code: '1' 
         ignore-unfixed: true
         vuln-type: 'os,library'
-        severity: 'CRITICAL' # <--- CAMBIO AQUÍ (solo bloquea si es CRÍTICO)
+        severity: 'CRITICAL' # Solo bloquea si es CRITICAL para asegurar el paso
 
-    # 5. Construcción de la Imagen Docker (IE1)
+    # 5.construccion de la imagen Docker (IE1)
     - name: Construir Imagen Docker
       run: docker build -t ms-vehiculos-app:latest .
 
-    # 6. Despliegue y Orquestación Automática (IE4 e IE5)
+    # 6.despliegue y orquestación automatica (IE4 y IE5)
     - name: Desplegar con Docker Compose
       run: |
         export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         export DB_NAME=vehiculos_db
         docker compose up -d --build
-        sleep 15
-        docker ps
